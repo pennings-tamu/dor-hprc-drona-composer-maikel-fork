@@ -63,18 +63,58 @@ if [[ "$VIEW" == "compact" ]]; then
             LINE+="Memory <span style=\"color:#64748b\">n/a</span>"
         fi
         LINE+="</div>"
-        # Hint: a completed job that used under 10 % of a request of at least 4 GB
-        # (failed/cancelled jobs or jobs that never really started say nothing about memory needs)
+        # Next run: for a successful job, suggest smaller requests where this run
+        # used much less than it asked for (memory with 25 % margin, CPUs with 25 %,
+        # time with 50 % rounded up to 15 min). Only shown when the saving is large.
+        # Failed or cancelled jobs say nothing about what the work needs.
         STATE=$(echo "$SEFF_OUT" | awk '/^State:/ {print $2}')
-        HINT=$(awk -v e="${MEM_EFF:-100}" -v r="$MEM_REQ" -v st="$STATE" -v used="$MEM_USED" 'BEGIN {
-            if (st != "COMPLETED" || used + 0 <= 0) exit
-            split(r, a, " "); n = a[1] + 0; u = a[2]
-            gb = (u == "TB") ? n * 1024 : (u == "GB") ? n : (u == "MB") ? n / 1024 : 0
-            if (e < 10 && gb >= 4) print "yes"
-        }')
-        if [[ "$HINT" == "yes" ]]; then
-            LINE+="<div style=\"font-size:var(--drona-text-caption);color:#92400e;background:#fffbeb;border-left:3px solid #f59e0b;padding:3px 8px;margin:2px 0 4px;border-radius:0 6px 6px 0\">"
-            LINE+="Used under 10% of the requested memory. A smaller --mem request may start sooner; keep some margin for larger inputs.</div>"
+        EXIT_ST=$(echo "$SEFF_OUT" | awk -F'exit code ' '/^State:/ {print $2+0}')
+        if [[ "$STATE" == "COMPLETED" && "$EXIT_ST" == "0" ]]; then
+            TLIMIT=$(sacct -j "$JID" -X -n -P -o Timelimit 2>/dev/null | head -n 1)
+            NEXT=$(echo "$SEFF_OUT" | awk -v tl="$TLIMIT" '
+                function secs(t,   d, p, n, s) {
+                    if (t !~ /^[0-9]/) return 0
+                    d = 0; if (index(t, "-")) { split(t, p, "-"); d = p[1]; t = p[2] }
+                    n = split(t, p, ":"); s = 0
+                    for (i = 1; i <= n; i++) s = s * 60 + p[i]
+                    return d * 86400 + s
+                }
+                function gb(v, u) { return (u == "TB") ? v * 1024 : (u == "GB") ? v : (u == "MB") ? v / 1024 : (u == "KB") ? v / 1048576 : 0 }
+                function fmt_t(s,   d, h, m) {
+                    d = int(s / 86400); s -= d * 86400; h = int(s / 3600); m = int((s - h * 3600) / 60)
+                    return d > 0 ? sprintf("%d-%02d:%02d:00", d, h, m) : sprintf("%02d:%02d:00", h, m)
+                }
+                /^Nodes:/ { nodes = $2 }
+                /^Cores per node:/ { cpn = $4 }
+                /^Cores:/ { cores = $2 }
+                /^CPU Efficiency:/ { ceff = $3 + 0 }
+                /^Job Wall-clock time:/ { wall = secs($4) }
+                /^Memory Utilized:/ { used = gb($3, $4) }
+                /^Memory Efficiency:/ { req = gb($5, $6); split($0, q, "("); split(q[2], r, " "); pernode = gb(r[1], substr(r[2], 1, 2)) }
+                END {
+                    if (cores == "") cores = (nodes > 0 ? nodes : 1) * cpn
+                    out = ""
+                    # memory: single node only (seff reports one total for multi-node jobs)
+                    if (nodes == 1 && used > 0 && pernode >= 2) {
+                        m = int(used * 1.25) + 1
+                        if (m <= pernode / 2) out = out sprintf("memory <b>%dG</b> instead of %.0fG", m, pernode)
+                    }
+                    if (cores > 1 && ceff > 0 && ceff < 50) {
+                        c = int(cores * ceff / 100 * 1.25) + 1
+                        if (c <= cores / 2) out = out (out ? " · " : "") sprintf("CPUs <b>%d</b> instead of %d", c, cores)
+                    }
+                    lim = secs(tl)
+                    if (lim >= 3600 && wall > 0 && wall < lim / 2) {
+                        t = int((wall * 1.5 + 899) / 900) * 900
+                        if (t < 900) t = 900
+                        if (t <= lim / 2) out = out (out ? " · " : "") sprintf("time <b>%s</b> instead of %s", fmt_t(t), tl)
+                    }
+                    print out
+                }')
+            if [[ -n "$NEXT" ]]; then
+                LINE+="<div style=\"font-size:var(--drona-text-caption);color:#1e3a8a;background:#eff6ff;border-left:3px solid #3b82f6;padding:3px 8px;margin:2px 0 4px;border-radius:0 6px 6px 0\">"
+                LINE+="<b>Next run:</b> $NEXT <span style=\"color:#64748b\">(this run's use plus margin; smaller requests usually start sooner. Keep more margin if inputs grow, and check that the program's thread count follows the CPU request.)</span></div>"
+            fi
         fi
         OUT+="$LINE"
     done

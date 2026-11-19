@@ -22,6 +22,9 @@ parse_seconds() {
     echo $(( 10#$days*86400 + 10#$a*3600 + 10#$b*60 + 10#$c ))
 }
 
+source "$DRONA_RUNTIME_DIR/schedulers/slurm/drona_job_line.sh" 2>/dev/null \
+    || { pending_line() { printf '%s' "$1"; }; outcome_line() { :; }; }
+
 : "${HTML_TEMPLATE:=$DRONA_RUNTIME_DIR/schedulers/slurm/templates/slurm-jobs-template.html}"
 ROWS=""
 
@@ -40,15 +43,20 @@ escape_html() {
 read -ra JOB_LIST <<< "${JOBS//,/ }"
 
 for JID in "${JOB_LIST[@]}"; do
-    # Fetch data: ID|Name|UsedTime|LimitTime|State
-    DATA=$(squeue -j "$JID" -h -o "%i|%j|%M|%l|%T" 2>/dev/null)
-    # If not in queue, check accounting history (strip sacct's trailing
-    # delimiter only; leaves job names containing spaces intact)
-    [[ -z "$DATA" ]] && DATA=$(sacct -j "$JID" --format=JobID,JobName,Elapsed,Timelimit,State -n -X -p 2>/dev/null | sed 's/|$//')
+    # Fetch data: ID|UsedTime|LimitTime|State|Reason|Start|Dependency|Name
+    # (name last so a "|" in it cannot shift the other fields)
+    REASON=""; START=""; DEPS=""; EXITC=""
+    DATA=$(squeue -j "$JID" -h -o "%i|%M|%l|%T|%r|%S|%E|%j" 2>/dev/null | head -1)
+    if [[ -n "$DATA" ]]; then
+        IFS="|" read -r ID USED LIMIT STATE REASON START DEPS NAME <<< "$DATA"
+    else
+        # Not in the queue: accounting history (strip sacct's trailing
+        # delimiter only; leaves job names containing spaces intact)
+        DATA=$(sacct -j "$JID" --format=JobID,Elapsed,Timelimit,State,ExitCode,JobName -n -X -p 2>/dev/null | head -1 | sed 's/|$//')
+        IFS="|" read -r ID USED LIMIT STATE EXITC NAME <<< "$DATA"
+    fi
 
     if [[ -n "$DATA" ]]; then
-        IFS="|" read -r ID NAME USED LIMIT STATE <<< "$DATA"
-
         # Calculate Walltime Percentage
         SEC_USED=$(parse_seconds "$USED")
         SEC_LIMIT=$(parse_seconds "$LIMIT")
@@ -75,6 +83,12 @@ for JID in "${JOB_LIST[@]}"; do
               </td>"
         ROWS+="<td><span class='badge $BADGE'>$STATE</span></td>"
         ROWS+="</tr>"
+        if [[ "$STATE" == "PENDING" && -n "$REASON" ]]; then
+            ROWS+="<tr><td colspan='4' style='border-top:0;padding-top:0;color:#64748b;font-size:var(--drona-text-caption)'>&#8627; $(escape_html "$(pending_line "$REASON" "$START" "$DEPS")")</td></tr>"
+        elif [[ -n "$EXITC" ]]; then
+            WHY=$(outcome_line "$STATE" "$EXITC")
+            [[ -n "$WHY" ]] && ROWS+="<tr><td colspan='4' style='border-top:0;padding-top:0;color:#64748b;font-size:var(--drona-text-caption)'>&#8627; $(escape_html "$WHY")</td></tr>"
+        fi
     fi
 done
 

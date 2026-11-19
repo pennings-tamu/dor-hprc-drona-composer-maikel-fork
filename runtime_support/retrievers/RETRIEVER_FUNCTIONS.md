@@ -55,7 +55,9 @@ Reach for a builtin when a retriever is *only* a fixed-shape `job_history` looku
 | drona_slurm_jobs_table.sh | HTML | Status line + Job ID / Name / Status / Elapsed / Node(s) table. |
 | drona_slurm_logs.sh | HTML | Last lines of `out.<jobid>` / `error.<jobid>` (optional `JOBID`, `LINES`). Template `slurm-logs-template.html`. |
 | drona_slurm_sstat.sh | HTML | Live usage of a running job from sstat. Template `slurm-sstat-template.html`. |
-| drona_slurm_seff.sh | HTML | Efficiency of finished jobs from seff. Template `slurm-seff-template.html`. |
+| drona_slurm_seff.sh | HTML | Efficiency of finished jobs from seff. Template `slurm-seff-template.html`. `VIEW=compact` adds a "Next run" line (smaller memory/CPU/time requests) for successful jobs. |
+| drona_slurm_pending.sh | HTML | Why a pending job waits: reason in plain language + hint, estimated start (backfill), queue position among competing jobs in the partition, priority factors (sprio), requested resources, overlapping MAINT reservations. Params `JOBID` (or first of `JOBS`). Empty output when the job is not pending. |
+| drona_slurm_outcome.sh | HTML | How a finished job ended: outcome + hint, exit code explained, failed steps, first error line from its own log (first 64 KB + last 1 MB), queue/run time, workflow jobs blocked by it. Params `JOBID` (or first of `JOBS`), `JOBS`. Fetch once. |
 | drona_slurm_processes.sh | HTML | The user's processes on one node (srun --overlap inside the job, else ssh). Template `slurm-processes-template.html`. |
 | drona_reservations.sh | options | Reservations the user can use, active first, then upcoming. |
 | drona_reservation_gpus.sh | options | Accelerators (incl. MIG slices) and partitions on a reservation's nodes. |

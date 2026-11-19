@@ -13,6 +13,8 @@
         "isDynamic": true,
         "allowHtml": true,
         "showRefreshButton": true,
+        "refreshInterval": "60",
+        "refreshWhile": "!drona_workflow_status.DONE",
         "retrieverParams": {
           "JOBS": "$drona_info_jobs"
         },

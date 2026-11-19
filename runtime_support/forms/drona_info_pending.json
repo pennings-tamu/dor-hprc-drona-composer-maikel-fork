@@ -1,0 +1,19 @@
+{
+  "drona_pending_section": {
+    "type": "staticText",
+    "name": "drona_pending_info",
+    "useLabel": false,
+    "isDynamic": true,
+    "allowHtml": true,
+    "showRefreshButton": true,
+    "condition": "!drona_create_manage_allworkflows. && !drona_info_jobs. && drona_status.PENDING",
+    "retriever": "drona_slurm_pending.sh",
+    "retrieverParams": {
+      "JOBID": "$drona_job_scope",
+      "JOBS": "$drona_info_jobs"
+    },
+    "refreshInterval": "60",
+    "refreshWhile": "drona_status.PENDING",
+    "layout": { "preset": "card", "title": "Why is the job waiting? · Job $drona_job_scope", "collapsible": true }
+  }
+}

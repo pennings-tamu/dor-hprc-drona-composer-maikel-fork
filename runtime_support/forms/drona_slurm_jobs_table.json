@@ -9,7 +9,8 @@
         "name": "drona_slurm_jobs_table",
         "isDynamic": true,
         "allowHtml": true,
-        "refreshInterval": "10",
+        "refreshInterval": "60",
+        "refreshWhile": "!drona_workflow_status.DONE",
         "showRefreshButton": true,
         "retrieverParams": {
           "JOBS": "$drona_info_jobs"

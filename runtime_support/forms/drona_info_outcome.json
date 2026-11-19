@@ -1,0 +1,17 @@
+{
+  "drona_outcome_section": {
+    "type": "staticText",
+    "name": "drona_outcome_info",
+    "useLabel": false,
+    "isDynamic": true,
+    "allowHtml": true,
+    "showRefreshButton": true,
+    "condition": "!drona_create_manage_allworkflows. && !drona_info_jobs. && drona_status.DONE",
+    "retriever": "drona_slurm_outcome.sh",
+    "retrieverParams": {
+      "JOBID": "$drona_job_scope",
+      "JOBS": "$drona_info_jobs"
+    },
+    "layout": { "preset": "card", "title": "How did the job end? · Job $drona_job_scope", "collapsible": true }
+  }
+}
