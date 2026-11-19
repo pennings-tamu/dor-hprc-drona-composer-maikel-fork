@@ -21,10 +21,8 @@ runtime_support/
 │       ├── drona_wf_driver_sbatch  submit tool for environment drivers
 │       ├── retrievers/          Slurm-specific retrievers (jobs table, sstat, seff, logs, ...)
 │       └── templates/           their HTML templates
-├── legacy/              files no drona-v2 environment uses, kept for older environments (removed at 2.1)
-├── drona_runtime_paths.py  where shared files live: retriever search order, old-path aliases
+├── drona_runtime_paths.py  where shared files live: retriever search order, scheduler directory
 ├── drona_scheduler.py      loads schedulers/<name>/ (drona_scheduler.current())
-├── aliases.json         old (pre-2.0) paths -> new paths
 └── CATALOG.md           one row per feature: its form keys, map include, retrievers, functions, helpers
 ```
 
@@ -46,9 +44,8 @@ This file explains how the pieces fit together and lists the conventions that ar
 1. relative to the environment's own directory (an env-local override)
 2. `runtime_support/schedulers/<scheduler>/retrievers/<name>` (scheduler-specific, e.g. `drona_slurm_sstat.sh`)
 3. `runtime_support/retrievers/<name>` (scheduler-neutral)
-4. `runtime_support/legacy/retrievers/<name>` (kept for older environments)
 
-Steps 2–4 are `drona_runtime_paths.find_retriever()`. The scheduler is `scheduler` in `config.yml` (environment variable `DRONA_SCHEDULER`, default `slurm`), so a form can name a retriever without saying which scheduler provides it.
+Steps 2–3 are `drona_runtime_paths.find_retriever()`. The scheduler is `scheduler` in `config.yml` (environment variable `DRONA_SCHEDULER`, default `slurm`), so a form can name a retriever without saying which scheduler provides it.
 
 This is why an environment can have its own `drona_slurm_seff.sh` that takes priority over the shared one, without anything needing to know which copy is actually running — but it also means **a shared script's bugs are invisible in any environment that happens to have a local override masking them**, and only show up in environments that don't. Check both when debugging.
 
@@ -132,10 +129,4 @@ Environments own their drivers and job scripts, so a site with another scheduler
 
 ## Old paths (before 2.0)
 
-Environments written before this layout use `form_components/`, `map_references/`, `retriever_scripts/`, `html_templates/` and `driver_scripts/`. They keep working:
-
-- `$ref`, `$include` and retriever lookups translate old paths through `aliases.json` (`drona_runtime_paths.resolve()`);
-- `driver_scripts/drona_wf_driver_sbatch` is a symlink to `schedulers/slurm/drona_wf_driver_sbatch`, because environment drivers run it from the shell;
-- files that no current environment uses are in `legacy/` and are still found by both mechanisms.
-
-`tests/test_env_references.py` lists which references of an environment still rely on old paths (`DRONA_TEST_ENVS_DIR=<envs dir>`, add `DRONA_TEST_STRICT=1` to fail on them). The aliases, the symlink and `legacy/` are removed at environment API 2.1.
+Environments written before this layout used `form_components/`, `map_references/`, `retriever_scripts/`, `html_templates/` and `driver_scripts/`. Those paths resolved through aliases up to environment API 2.0 and were removed in 2.1, together with `legacy/` and the `driver_scripts/drona_wf_driver_sbatch` symlink. Use the paths above. `tests/test_env_references.py` (`DRONA_TEST_ENVS_DIR=<envs dir>`) reports any reference that no longer resolves.

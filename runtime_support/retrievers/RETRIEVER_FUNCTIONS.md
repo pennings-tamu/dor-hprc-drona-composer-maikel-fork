@@ -1,6 +1,6 @@
 # Retriever Functions Documentation
 
-This document describes the shared retrievers in `runtime_support`, grouped by where they live. A form names a retriever by file name only; the app searches the environment directory, then `schedulers/<scheduler>/retrievers/`, then `retrievers/`, then `legacy/retrievers/` (see `../README.md`). Which feature uses which retriever: `../CATALOG.md`.
+This document describes the shared retrievers in `runtime_support`, grouped by where they live. A form names a retriever by file name only; the app searches the environment directory, then `schedulers/<scheduler>/retrievers/`, then `retrievers/` (see `../README.md`). Which feature uses which retriever: `../CATALOG.md`.
 
 ## Declarative Built-ins
 
@@ -62,13 +62,3 @@ Reach for a builtin when a retriever is *only* a fixed-shape `job_history` looku
 | drona_reservations.sh | options | Reservations the user can use, active first, then upcoming. |
 | drona_reservation_gpus.sh | options | Accelerators (incl. MIG slices) and partitions on a reservation's nodes. |
 | drona_reservation_summary.sh | HTML | One-line summary of the reservation choices plus warnings. |
-
-## Legacy (`legacy/retrievers/`)
-
-Not used by any drona-v2 environment; kept so older environments keep working until environment API 2.1.
-
-| Retriever | Purpose |
-|---|---|
-| drona_select_wf.sh (+ .py) | Workflows of the current environment (replaced by `builtin:db_options`). |
-| drona_slurm_nodeutil.sh | Per-node CPU/memory via srun (template `legacy/templates/slurm-nodeutil-template.html`). |
-| drona_slurm_cgroups.sh | cgroup memory/CPU data via srun (template `legacy/templates/slurm-cgroups-template.html`). |

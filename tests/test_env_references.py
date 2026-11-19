@@ -7,8 +7,8 @@ For each environment under DRONA_TEST_ENVS_DIR (skipped when unset):
   - every "retriever" name is found (environment dir first, then the shared search path),
   - every literal $DRONA_RUNTIME_DIR/... path in the environment's text files exists.
 
-Broken references fail the test. References that only work through runtime_support/aliases.json
-(old pre-2.0 paths such as form_components/) are listed; with DRONA_TEST_STRICT=1 they fail too.
+Broken references fail the test, including old pre-2.0 paths such as form_components/
+(their aliases were removed at environment API 2.1).
 
     DRONA_TEST_ENVS_DIR=$SCRATCH/drona_wfe/environments python3 -m unittest tests.test_env_references -v
     python3 tests/test_env_references.py <envs dir>      # plain report
@@ -37,17 +37,12 @@ class EnvChecker:
     def __init__(self, env_dir):
         self.env_dir = env_dir
         self.errors = []    # broken
-        self.aliased = []   # works only through aliases.json
         self._seen = set()
 
     def _locate(self, path, where):
-        """Existing path for path, recording aliased/broken use. None if broken."""
+        """path if it exists; otherwise records it as broken and returns None."""
         if os.path.exists(path):
             return path
-        resolved = drona_runtime_paths.resolve(path)
-        if resolved != path and os.path.exists(resolved):
-            self.aliased.append(f"{where}: {os.path.relpath(path, RUNTIME)} -> {os.path.relpath(resolved, RUNTIME)}")
-            return resolved
         self.errors.append(f"{where}: missing {path}")
         return None
 
@@ -157,7 +152,6 @@ class EnvChecker:
             self.check_json_file(schema)
         self.check_map()
         self.check_runtime_paths()
-        self.aliased = sorted(set(self.aliased))
         return self
 
 
@@ -175,12 +169,10 @@ ENVS_DIR = os.environ.get("DRONA_TEST_ENVS_DIR")
 @unittest.skipUnless(ENVS_DIR, "set DRONA_TEST_ENVS_DIR to check environments")
 class EnvReferencesTest(unittest.TestCase):
     def test_references_resolve(self):
-        strict = os.environ.get("DRONA_TEST_STRICT") == "1"
         for name, path in environments(ENVS_DIR):
             with self.subTest(env=name):
                 result = EnvChecker(path).run()
-                problems = result.errors + (result.aliased if strict else [])
-                self.assertEqual(problems, [], "\n" + "\n".join(problems))
+                self.assertEqual(result.errors, [], "\n" + "\n".join(result.errors))
 
 
 if __name__ == "__main__":
@@ -189,8 +181,6 @@ if __name__ == "__main__":
         sys.exit("usage: test_env_references.py <envs dir>")
     for env_name, env_path in environments(envs):
         res = EnvChecker(env_path).run()
-        print(f"== {env_name}: {len(res.errors)} broken, {len(res.aliased)} via aliases")
+        print(f"== {env_name}: {len(res.errors)} broken")
         for line in res.errors:
             print("   BROKEN  " + line)
-        for line in res.aliased:
-            print("   ALIAS   " + line)

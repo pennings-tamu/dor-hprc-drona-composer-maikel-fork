@@ -12,7 +12,7 @@ An environment without `requires_drona` is treated as compatible (old-format env
 import os
 import re
 
-DRONA_ENV_API = "2.0"
+DRONA_ENV_API = "2.1"
 
 _CLAUSE = re.compile(r"^\s*(>=|<=|==|!=|>|<)?\s*(\d+(?:\.\d+)*)\s*$")
 _OPS = {

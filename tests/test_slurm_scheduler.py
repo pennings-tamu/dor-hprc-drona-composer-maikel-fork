@@ -59,27 +59,15 @@ class LoaderTest(unittest.TestCase):
                          os.path.join(RUNTIME, "schedulers", "slurm", "retrievers", "drona_slurm_seff.sh"))
         self.assertEqual(drona_runtime_paths.find_retriever("drona_cpu_chart_data.sh"),
                          os.path.join(RUNTIME, "retrievers", "drona_cpu_chart_data.sh"))
-        self.assertEqual(drona_runtime_paths.find_retriever("drona_slurm_cgroups.sh"),
-                         os.path.join(RUNTIME, "legacy", "retrievers", "drona_slurm_cgroups.sh"))
         self.assertIsNone(drona_runtime_paths.find_retriever("../app.py"))
         self.assertIsNone(drona_runtime_paths.find_retriever("nope.sh"))
 
-    def test_old_paths_resolve_through_aliases(self):
-        old = os.path.join(RUNTIME, "form_components", "drona_scopes.json")
-        self.assertEqual(drona_runtime_paths.resolve(old), os.path.join(RUNTIME, "forms", "drona_scopes.json"))
-        old = os.path.join(RUNTIME, "form_components", "drona_info_nodeutil.json")
-        self.assertEqual(drona_runtime_paths.resolve(old),
-                         os.path.join(RUNTIME, "legacy", "forms", "drona_info_nodeutil.json"))
-        old = os.path.join(RUNTIME, "html_templates", "slurm-seff-template.html")
-        self.assertEqual(drona_runtime_paths.resolve(old),
-                         os.path.join(RUNTIME, "schedulers", "slurm", "templates", "slurm-seff-template.html"))
-        old = os.path.join(RUNTIME, "map_references", "drona_cancel_jobs.json")
-        self.assertEqual(drona_runtime_paths.resolve(old), os.path.join(RUNTIME, "maps", "drona_cancel_jobs.json"))
-        self.assertEqual(drona_runtime_paths.resolve("/nonexistent/x.json"), "/nonexistent/x.json")
-
-    def test_legacy_submit_path_still_runs(self):
-        old = os.path.join(RUNTIME, "driver_scripts", "drona_wf_driver_sbatch")
-        self.assertTrue(os.path.isfile(old) and os.access(old, os.X_OK))
+    def test_old_paths_are_gone(self):
+        # Removed at environment API 2.1: no aliases, no legacy/, no driver_scripts/ symlink
+        for old in ("aliases.json", "legacy", "driver_scripts", "form_components", "map_references",
+                    "retriever_scripts", "html_templates"):
+            self.assertFalse(os.path.exists(os.path.join(RUNTIME, old)), old)
+        self.assertIsNone(drona_runtime_paths.find_retriever("drona_slurm_cgroups.sh"))
 
 
 if __name__ == "__main__":

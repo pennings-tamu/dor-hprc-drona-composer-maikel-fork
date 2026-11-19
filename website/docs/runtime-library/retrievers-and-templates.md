@@ -15,7 +15,6 @@ A form names a retriever by file name only. Drona looks for it in this order:
 1. the **environment's own directory**, so an environment can override a shared script
 2. `runtime_support/schedulers/<scheduler>/retrievers/`, for scripts that call the scheduler
 3. `runtime_support/retrievers/`, for scheduler-neutral scripts
-4. `runtime_support/legacy/retrievers/`, kept for older environments
 
 The scheduler is the `scheduler` setting in `config.yml` (default `slurm`), so a form never says which scheduler provides a script.
 

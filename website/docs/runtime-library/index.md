@@ -55,7 +55,6 @@ runtime_support/
 ├── schedulers/slurm/    everything that talks to Slurm: job states and cancel, resource
 │                        settings and cluster profiles, Slurm retrievers and templates,
 │                        and the submit command drona_wf_driver_sbatch
-├── legacy/              files kept only for older environments
 └── CATALOG.md           which forms, maps, functions and retrievers make up each feature
 ```
 
@@ -69,4 +68,4 @@ A feature often has pieces in several of these directories, for example a form e
 
 ## Paths from Older Drona Versions
 
-Before 2.0 the directories were called `form_components/`, `map_references/`, `retriever_scripts/`, `html_templates/` and `driver_scripts/`. Environments that still use those paths keep working: `$ref`, `$include` and retriever lookups translate them through `runtime_support/aliases.json`, and `driver_scripts/drona_wf_driver_sbatch` is a symlink to `schedulers/slurm/drona_wf_driver_sbatch`. Use the new paths in new environments; the old ones are removed at environment API 2.1. `tests/test_env_references.py` lists the old paths an environment still uses.
+Before 2.0 the directories were called `form_components/`, `map_references/`, `retriever_scripts/`, `html_templates/` and `driver_scripts/`. Environment API 2.0 still translated those paths; 2.1 removed them, so an environment that uses them must switch to the paths above (for example `driver_scripts/drona_wf_driver_sbatch` becomes `schedulers/slurm/drona_wf_driver_sbatch`). `tests/test_env_references.py` reports references that no longer resolve.

@@ -98,7 +98,7 @@ def execute_script(
         final_retriever_path = os.path.join(env_vars["DRONA_ENV_DIR"], retriever_path)
 
     if not os.path.exists(final_retriever_path):
-        # Shared retrievers: schedulers/<scheduler>/retrievers -> retrievers -> legacy/retrievers
+        # Shared retrievers: schedulers/<scheduler>/retrievers -> retrievers
         fallback_path = drona_runtime_paths.find_retriever(retriever_path)
         if fallback_path:
             final_retriever_path = fallback_path
@@ -246,8 +246,7 @@ def _make_schema_loader(env_dir):
     def loader(uri, **kwargs):
         parsed = urlparse(uri)
         if parsed.scheme == "file":
-            # Old runtime_support locations (form_components/...) resolve via aliases.json
-            with open(drona_runtime_paths.resolve(unquote(parsed.path)), encoding="utf-8") as content:
+            with open(unquote(parsed.path), encoding="utf-8") as content:
                 raw = content.read()
         else:
             with urlopen(uri) as content:

@@ -52,14 +52,4 @@ Helpers are attached to the job as hidden additional files under `.drona/` by th
 
 | Feature | File | Notes |
 |---|---|---|
-| Pipeline submit (**Slurm**) | `schedulers/slurm/drona_wf_driver_sbatch <job files>` | Called from an environment driver. Submits each job file with `afterok` on the previous one, records `jobinfo` (id + `#DRONA label:`) in the workflow record. Old path `driver_scripts/drona_wf_driver_sbatch` is a symlink. |
-
-## Legacy (`legacy/`)
-
-Not used by drona-v2 environments; still found through the old paths. Removed at environment API 2.1.
-
-| File | Was |
-|---|---|
-| `legacy/forms/drona_info_nodeutil.json`, `drona_info_utilization_panel.json`, `drona_slurm_utilization_panel.json` | older manage panels |
-| `legacy/retrievers/drona_select_wf.sh` (+ `.py`) | workflow picker before `builtin:db_options` |
-| `legacy/retrievers/drona_slurm_nodeutil.sh`, `drona_slurm_cgroups.sh` + `legacy/templates/` | node utilization / cgroup panels |
+| Pipeline submit (**Slurm**) | `schedulers/slurm/drona_wf_driver_sbatch <job files>` | Called from an environment driver. Submits each job file with `afterok` on the previous one, records `jobinfo` (id + `#DRONA label:`) in the workflow record. |
