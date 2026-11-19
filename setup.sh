@@ -83,5 +83,20 @@ pip install -r requirements.txt
 # pip install -r requirements.txt.Python2.6.8
 
 
-npm ci --no-audit --no-fund
-npm run build:prod:compress
+# Release tarballs ship a prebuilt static/dist/ and have no .git, so Node is not needed there.
+# A git clone always reinstalls and rebuilds, so a pull never leaves a stale node_modules or bundle.
+if [ ! -d .git ] && [ -f static/dist/main.bundle.js ]; then
+  echo "Prebuilt release package detected, skipping the npm build."
+else
+  npm ci --no-audit --no-fund
+  npm run build:prod:compress
+fi
+
+# Open OnDemand derives the app URL from the directory name.
+case "$APP_ENV_CHOICE" in
+  production)  APP_URL="/pun/sys/$CURRENTDIR" ;;
+  development) APP_URL="/pun/dev/$CURRENTDIR" ;;
+  *)           APP_URL="http://localhost:5000" ;;
+esac
+echo
+echo "Setup complete. Drona will be at: $APP_URL"

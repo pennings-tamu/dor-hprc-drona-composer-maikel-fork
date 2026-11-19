@@ -1,15 +1,21 @@
 # Drona Workflow Engine
 
+[![CI](https://github.com/tamu-edu/dor-hprc-drona-composer/actions/workflows/nodejs.yml/badge.svg?branch=master)](https://github.com/tamu-edu/dor-hprc-drona-composer/actions/workflows/nodejs.yml)
+[![Latest release](https://img.shields.io/github/v/release/tamu-edu/dor-hprc-drona-composer)](https://github.com/tamu-edu/dor-hprc-drona-composer/releases/latest)
+[![Docs](https://img.shields.io/badge/docs-website-blue)](https://tamu-edu.github.io/dor-hprc-drona-composer/)
+[![License: MIT](https://img.shields.io/github/license/tamu-edu/dor-hprc-drona-composer)](LICENSE)
+
 ## Overview
 
-[Drona Workflow Engine](https://hprc.tamu.edu/kb/User-Guides/Portal/Drona_composer/index.html), developed by High Performance Research Computing (HPRC) at Texas A&M University, assists researchers in creating and submitting any type of job (including complex multi-stage jobs) using a 100% graphical interface. It guides the researcher in providing job-specific information, generating all necessary job files, and submitting the job on the user's behalf.
+[Drona Workflow Engine](https://tamu-edu.github.io/dor-hprc-drona-composer/), developed by High Performance Research Computing (HPRC) at Texas A&M University, assists researchers in creating, submitting, and monitoring any type of workflow (including complex multi-stage jobs) using a 100% graphical interface. It guides the researcher in providing workflow-specific information, generating all necessary job files, and submitting the job on the user's behalf.
 
-- **App type:** Passenger Phusion app (React/Flask), categorized under "Jobs"
+- **App type:** Passenger Phusion app (React/Flask), categorized under "Jobs" → "Workflows" in the Open OnDemand menu
 - **License:** MIT
 
 ## Screenshots
 
-![The Drona Dashboard](https://github.com/tamu-edu/dor-hprc-drona-composer/.github/drona.png)
+![The Drona Dashboard](https://github.com/tamu-edu/dor-hprc-drona-composer/blob/master/.github/drona.png)
+![The Drona Dashboard](https://github.com/tamu-edu/dor-hprc-drona-composer/blob/master/.github/drona-preview.png)
 
 ## Features
 
@@ -33,13 +39,33 @@ Open OnDemand >=3.0
 
 Python 3.8+ (see `requirements.txt` for dependencies)
 
-For detailed information on how to use Drona Workflow Engine and how to create your custom jobs and/or workflows, check out this GitHub repo's Wiki or the HPRC [Drona Workflow Engine](https://hprc.tamu.edu/kb/User-Guides/Portal/Drona_composer/index.html) User Guide. If you're building or debugging an environment, see [`runtime_support/README.md`](runtime_support/README.md) for the shared form components, retriever scripts, and HTML templates every environment can reuse.
+For detailed information on how to use Drona Workflow Engine and how to create your custom jobs and/or workflows, check out this GitHub repo's Wiki or the HPRC [Drona Workflow Engine](https://tamu-edu.github.io/dor-hprc-drona-composer/) website. If you're building or debugging an environment, see [`runtime_support/README.md`](runtime_support/README.md) for the shared form components, retriever scripts, and templates every environment can reuse.
 
 To set up/install Drona Workflow Engine, see the instructions below. If you have any questions, please contact us at help@hprc.tamu.edu. If you find any bugs, you are welcome to create an issue in this repo.
 
 ## Setup
 
 For setup instructions, see the [Installation](https://tamu-edu.github.io/dor-hprc-drona-composer/docs/overview/installation) section on the Drona Workflow Engine site.
+
+### Install from a release (no Node needed)
+
+Each [release](https://github.com/tamu-edu/dor-hprc-drona-composer/releases) has a
+`drona-workflow-engine-<version>-prebuilt.tar.gz` with the frontend already built, so the host needs only
+Python, not Node. Unpack it in the Open OnDemand apps directory and run the setup script:
+
+```bash
+cd /var/www/ood/apps/sys
+tar -xzf drona-workflow-engine-<version>-prebuilt.tar.gz    # creates dor-hprc-drona-composer/
+cd dor-hprc-drona-composer && ./setup.sh
+```
+
+The directory name sets the app's URL (`/pun/sys/dor-hprc-drona-composer`); rename the directory before
+running `setup.sh` if you want a different one.
+
+### Install from git
+
+A git clone builds the frontend during `setup.sh`, which needs Node `^20.19`, `^22.13` or `>=24`.
+After changing frontend code, rebuild with `npm run build:prod:compress`.
 
 ## Troubleshooting
 
@@ -89,7 +115,7 @@ If you use Drona Workflow Engine, please cite our paper:
 
 ## License
 
-MIT (see [LICENSE](https://github.com/tamu-edu/dor-hprc-drona-composer/LICENSE.md) file)
+MIT (see [LICENSE](https://github.com/tamu-edu/dor-hprc-drona-composer/blob/master/LICENSE) file)
 
 ## Acknowledgments
 

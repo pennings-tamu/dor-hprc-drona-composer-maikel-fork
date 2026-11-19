@@ -1,39 +1,64 @@
-name: Run React Tests
+name: CI
 
 on:
   push:
-    branches:
-      - testing 
+    branches: [ master, hprc-dev ]
   pull_request:
-    branches:
-      - testing
+    # hprc-dev too: Dependabot's update PRs target hprc-dev.
+    branches: [ master, hprc-dev ]
+
+permissions:
+  contents: read
 
 jobs:
   test:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Set up Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: '16'
+      # jsdom 29 (Jest 30) needs Node ^20.19, ^22.13 or >=24.
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: package-lock.json
 
-    - name: Cache Node.js modules
-      uses: actions/cache@v2
-      with:
-        path: node_modules
-        key: ${{ runner.os }}-node-modules-${{ hashFiles('**/package-lock.json') }}
-        restore-keys: |
-          ${{ runner.os }}-node-modules-
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
 
-    - name: Install dependencies
-      run: npm install
+      - name: Run tests
+        run: npx jest --ci
+        env:
+          CI: true
 
-    - name: Run tests
-      run: npm test -- --ci --coverage
-      env:
-        CI: true
+  # Python backend tests (tests/) on the oldest supported Python (3.8, see README) and a current one.
+  # Ubuntu 24.04, not ubuntu-latest: Ubuntu 26.04 runners only offer Python 3.10 and newer.
+  python-tests:
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: [ '3.8', '3.13' ]
 
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: 'pip'
+          cache-dependency-path: requirements.txt
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt pytest
+
+      - name: Check dependencies
+        run: pip check
+
+      - name: Run tests
+        run: python -m pytest -q tests
